@@ -40,7 +40,7 @@ public:
     srv_add_sample_ = pnh_.advertiseService("add_pivot_sample", &DualCamPivotCalibNode::addPivotSample, this);
     srv_calibrate_ = pnh_.advertiseService("calibrate", &DualCamPivotCalibNode::calibrate, this);
 
-    ROS_INFO("dual_cam_pivot_calib 节点已启动，等待点云与服务调用...");
+    ROS_INFO("dual_cam_pivot_calib initialized waiting for point clouds and service calls...");
   }
 
 private:
@@ -80,7 +80,7 @@ private:
 
     if (src->empty() || tgt->empty())
     {
-      ROS_WARN("ICP 输入点云为空，跳过该样本");
+      ROS_WARN("ICP empty cloud after downsampling, src points: %zu, tgt points: %zu", src->size(), tgt->size());
       return false;
     }
 
@@ -96,7 +96,7 @@ private:
 
     if (!icp.hasConverged())
     {
-      ROS_WARN("ICP 未收敛，丢弃该样本");
+      ROS_WARN("ICP did not converge, discarding this sample");
       return false;
     }
 
@@ -111,7 +111,7 @@ private:
     if (!latest_cloud_1_ || !latest_cloud_2_)
     {
       res.success = false;
-      res.message = "尚未收到两路点云，无法设置基准帧";
+      res.message = "Point clouds from both cameras have not been received, cannot set reference frame";
       return true;
     }
 
@@ -120,7 +120,7 @@ private:
     samples_.clear();
 
     res.success = true;
-    res.message = "基准参考帧已更新";
+    res.message = "Reference frame updated";
     ROS_INFO("%s", res.message.c_str());
     return true;
   }
@@ -132,14 +132,14 @@ private:
     if (!ref_cloud_1_ || !ref_cloud_2_)
     {
       res.success = false;
-      res.message = "请先调用 set_reference 设置基准帧";
+      res.message = "Please call set_reference first to set the reference frame";
       return true;
     }
 
     if (!latest_cloud_1_ || !latest_cloud_2_)
     {
       res.success = false;
-      res.message = "尚未收到最新点云";
+      res.message = "Latest point clouds have not been received";
       return true;
     }
 
@@ -152,14 +152,14 @@ private:
     if (!runIcp(cur1, ref_cloud_1_, A_k) || !runIcp(cur2, ref_cloud_2_, B_k))
     {
       res.success = false;
-      res.message = "ICP 失败，样本未加入队列";
+      res.message = "ICP failed, sample not added to queue";
       return true;
     }
 
     samples_.push_back({A_k, B_k});
 
     std::ostringstream oss;
-    oss << "已采集有效样本数: " << samples_.size();
+    oss << "Number of valid samples collected: " << samples_.size();
     res.success = true;
     res.message = oss.str();
     ROS_INFO("%s", res.message.c_str());
@@ -259,7 +259,7 @@ private:
     if (samples_.size() < 2)
     {
       res.success = false;
-      res.message = "样本数不足，至少需要 2 个有效样本";
+      res.message = "Not enough samples, at least 2 valid samples are required";
       return true;
     }
 
@@ -283,16 +283,16 @@ private:
     X.block<3, 1>(0, 3) = t_X;
 
     std::ostringstream oss;
-    oss << "\n========== 标定结果 ==========\n"
-        << "相机1水平力臂: r1x=" << r1.x() << ", r1y=" << r1.y() << "\n"
-        << "相机2水平力臂: r2x=" << r2.x() << ", r2y=" << r2.y() << "\n"
-        << "外参矩阵 X (T_C1<-C2):\n"
+    oss << "\n========== calibration results ==========\n"
+        << "Camera 1 horizontal lever arm: r1x=" << r1.x() << ", r1y=" << r1.y() << "\n"
+        << "Camera 2 horizontal lever arm: r2x=" << r2.x() << ", r2y=" << r2.y() << "\n"
+        << "Extrinsic matrix X (T_C1<-C2):\n"
         << X << "\n==============================";
 
     ROS_INFO("%s", oss.str().c_str());
 
     res.success = true;
-    res.message = "标定完成，结果已输出到终端";
+    res.message = "Calibration completed, results have been output to the terminal";
     return true;
   }
 
