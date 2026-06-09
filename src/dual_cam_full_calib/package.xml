@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>dual_cam_pivot_calib</name>
-  <version>0.1.0</version>
-  <description>Dual-camera pivot calibration using pure rotation and ICP</description>
+  <name>dual_cam_full_calib</name>
+  <version>0.2.0</version>
+  <description>Dual-camera full calibration using pivot rotation, straight-line motion and ICP</description>
   <maintainer email="dev@example.com">dev</maintainer>
   <license>MIT</license>
 

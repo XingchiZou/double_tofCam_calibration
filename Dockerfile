@@ -23,7 +23,7 @@ COPY scripts ./scripts
 
 RUN /bin/bash -c "source /opt/ros/noetic/setup.bash && \
     catkin_make -DCMAKE_BUILD_TYPE=Release && \
-    chmod +x /catkin_ws/scripts/*.sh /catkin_ws/src/dual_cam_pivot_calib/scripts/*.py"
+    chmod +x /catkin_ws/scripts/*.sh /catkin_ws/src/dual_cam_full_calib/scripts/*.py"
 
 COPY scripts/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh

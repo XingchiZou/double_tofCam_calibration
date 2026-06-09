@@ -4,7 +4,7 @@
 
 ### Product overview
 
-This repo implements `dual_cam_pivot_calib`, a ROS 1 Noetic C++ node for dual ToF/camera pivot calibration via pure rotation and PCL ICP. The host VM runs Ubuntu 24.04; **ROS Noetic runs inside Docker** (Focal-based `ros:noetic-ros-base-focal` image) because Noetic is not supported natively on 24.04.
+This repo implements `dual_cam_full_calib`, a ROS 1 Noetic C++ node for dual ToF/camera full calibration via pivot rotation, straight-line motion, and PCL ICP. It computes alignment rotations, lever arms, extrinsic transform, and yaw correction. The host VM runs Ubuntu 24.04; **ROS Noetic runs inside Docker** (Focal-based `ros:noetic-ros-base-focal` image) because Noetic is not supported natively on 24.04.
 
 ### Services
 
@@ -13,7 +13,7 @@ This repo implements `dual_cam_pivot_calib`, a ROS 1 Noetic C++ node for dual To
 | Docker daemon | Yes | Must be running before any build/run. In Cloud VMs, start with `sudo dockerd` if not already up (see Dockerfile setup in this branch). |
 | `ros-dev` (docker compose) | Yes | Provides ROS Noetic, PCL, Eigen, catkin workspace at `/catkin_ws`. |
 | `roscore` | Yes (runtime) | Started automatically by `scripts/demo.sh`. |
-| Synthetic publisher / real cameras | Yes (runtime) | Demo uses `synthetic_pivot_publisher.py`; real hardware publishes to `/cam1/points` and `/cam2/points`. |
+| Synthetic publisher / real cameras | Yes (runtime) | Demo uses `synthetic_full_publisher.py`; real hardware publishes to `/cam1/points` and `/cam2/points`. |
 
 ### Common commands
 
@@ -24,7 +24,7 @@ All commands run from repo root:
 docker compose build
 docker compose run --rm ros-dev ./scripts/build.sh
 
-# End-to-end demo (roscore → synthetic clouds → set_reference → add_pivot_sample ×3 → calibrate)
+# End-to-end demo (roscore → synthetic clouds → set_reference → pivot ×3 → straight ×1 → calibrate)
 docker compose run --rm ros-dev ./scripts/demo.sh
 
 # Interactive dev shell with ROS env sourced

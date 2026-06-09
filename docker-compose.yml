@@ -1,7 +1,7 @@
 services:
   ros-dev:
     build: .
-    image: dual-cam-pivot-calib:dev
+    image: dual-cam-full-calib:dev
     network_mode: host
     volumes:
       - ./src:/catkin_ws/src:cached
