@@ -1,5 +1,5 @@
-# dual_cam_pivot_calib configuration
-# All parameters are optional; defaults match the original hardcoded values.
+# dual_cam_full_calib configuration
+# All parameters are optional; defaults match the original spec values.
 
 # --- Point cloud topic names ---
 cam1_topic: "/cam1/points"
@@ -13,5 +13,6 @@ icp_max_iterations: 50
 icp_transformation_epsilon: 1.0e-8
 icp_max_correspondence_distance: 0.5   # metres
 
-# --- Calibration ---
-min_samples: 2                 # minimum pivot samples required before calibrate
+# --- Calibration thresholds ---
+min_pivot_samples: 2           # minimum rotation samples (N >= 2)
+min_straight_samples: 1        # minimum straight-line samples (M >= 1)

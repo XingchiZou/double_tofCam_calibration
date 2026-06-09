@@ -1,0 +1,8 @@
+<launch>
+  <arg name="config_file" default="$(find dual_cam_full_calib)/config/config.yaml" />
+
+  <node name="dual_cam_full_calib" pkg="dual_cam_full_calib"
+        type="dual_cam_full_calib_node" output="screen">
+    <rosparam file="$(arg config_file)" command="load" />
+  </node>
+</launch>
