@@ -1,0 +1,17 @@
+# dual_cam_pivot_calib configuration
+# All parameters are optional; defaults match the original hardcoded values.
+
+# --- Point cloud topic names ---
+cam1_topic: "/cam1/points"
+cam2_topic: "/cam2/points"
+
+# --- VoxelGrid down-sampling ---
+voxel_leaf_size: 0.05          # metres, applied equally to x/y/z
+
+# --- ICP parameters ---
+icp_max_iterations: 50
+icp_transformation_epsilon: 1.0e-8
+icp_max_correspondence_distance: 0.5   # metres
+
+# --- Calibration ---
+min_samples: 2                 # minimum pivot samples required before calibrate

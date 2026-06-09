@@ -33,8 +33,10 @@ public:
 
   void init()
   {
-    sub_cam1_ = nh_.subscribe("/cam1/points", 1, &DualCamPivotCalibNode::cam1Callback, this);
-    sub_cam2_ = nh_.subscribe("/cam2/points", 1, &DualCamPivotCalibNode::cam2Callback, this);
+    loadParameters();
+
+    sub_cam1_ = nh_.subscribe(cam1_topic_, 1, &DualCamPivotCalibNode::cam1Callback, this);
+    sub_cam2_ = nh_.subscribe(cam2_topic_, 1, &DualCamPivotCalibNode::cam2Callback, this);
 
     srv_set_ref_ = pnh_.advertiseService("set_reference", &DualCamPivotCalibNode::setReference, this);
     srv_add_sample_ = pnh_.advertiseService("add_pivot_sample", &DualCamPivotCalibNode::addPivotSample, this);
@@ -44,6 +46,26 @@ public:
   }
 
 private:
+  void loadParameters()
+  {
+    pnh_.param<std::string>("cam1_topic", cam1_topic_, "/cam1/points");
+    pnh_.param<std::string>("cam2_topic", cam2_topic_, "/cam2/points");
+    pnh_.param<double>("voxel_leaf_size", voxel_leaf_size_, 0.05);
+    pnh_.param<int>("icp_max_iterations", icp_max_iterations_, 50);
+    pnh_.param<double>("icp_transformation_epsilon", icp_transformation_epsilon_, 1e-8);
+    pnh_.param<double>("icp_max_correspondence_distance", icp_max_correspondence_distance_, 0.5);
+    pnh_.param<int>("min_samples", min_samples_, 2);
+
+    ROS_INFO("Parameters loaded:");
+    ROS_INFO("  cam1_topic: %s", cam1_topic_.c_str());
+    ROS_INFO("  cam2_topic: %s", cam2_topic_.c_str());
+    ROS_INFO("  voxel_leaf_size: %.4f", voxel_leaf_size_);
+    ROS_INFO("  icp_max_iterations: %d", icp_max_iterations_);
+    ROS_INFO("  icp_transformation_epsilon: %.2e", icp_transformation_epsilon_);
+    ROS_INFO("  icp_max_correspondence_distance: %.4f", icp_max_correspondence_distance_);
+    ROS_INFO("  min_samples: %d", min_samples_);
+  }
+
   void cam1Callback(const sensor_msgs::PointCloud2::ConstPtr& msg)
   {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -68,7 +90,8 @@ private:
     CloudT::Ptr filtered(new CloudT);
     pcl::VoxelGrid<PointT> voxel;
     voxel.setInputCloud(input);
-    voxel.setLeafSize(0.05f, 0.05f, 0.05f);
+    const float leaf = static_cast<float>(voxel_leaf_size_);
+    voxel.setLeafSize(leaf, leaf, leaf);
     voxel.filter(*filtered);
     return filtered;
   }
@@ -87,9 +110,9 @@ private:
     pcl::IterativeClosestPoint<PointT, PointT> icp;
     icp.setInputSource(src);
     icp.setInputTarget(tgt);
-    icp.setMaximumIterations(50);
-    icp.setTransformationEpsilon(1e-8);
-    icp.setMaxCorrespondenceDistance(0.5);
+    icp.setMaximumIterations(icp_max_iterations_);
+    icp.setTransformationEpsilon(icp_transformation_epsilon_);
+    icp.setMaxCorrespondenceDistance(icp_max_correspondence_distance_);
 
     CloudT aligned;
     icp.align(aligned);
@@ -256,10 +279,12 @@ private:
   {
     std::lock_guard<std::mutex> lock(mutex_);
 
-    if (samples_.size() < 2)
+    if (static_cast<int>(samples_.size()) < min_samples_)
     {
       res.success = false;
-      res.message = "Not enough samples, at least 2 valid samples are required";
+      std::ostringstream err;
+      err << "Not enough samples, at least " << min_samples_ << " valid samples are required";
+      res.message = err.str();
       return true;
     }
 
@@ -309,6 +334,14 @@ private:
   ros::ServiceServer srv_set_ref_;
   ros::ServiceServer srv_add_sample_;
   ros::ServiceServer srv_calibrate_;
+
+  std::string cam1_topic_;
+  std::string cam2_topic_;
+  double voxel_leaf_size_;
+  int icp_max_iterations_;
+  double icp_transformation_epsilon_;
+  double icp_max_correspondence_distance_;
+  int min_samples_;
 
   std::mutex mutex_;
   sensor_msgs::PointCloud2::ConstPtr latest_cloud_1_;

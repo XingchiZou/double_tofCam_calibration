@@ -8,6 +8,8 @@ source /catkin_ws/devel/setup.bash
 export ROS_MASTER_URI="${ROS_MASTER_URI:-http://localhost:11311}"
 export ROS_HOSTNAME="${ROS_HOSTNAME:-localhost}"
 
+CONFIG_FILE="${1:-$(rospack find dual_cam_pivot_calib)/config/config.yaml}"
+
 echo "Starting roscore..."
 roscore &
 ROSCORE_PID=$!
@@ -25,8 +27,11 @@ rosrun dual_cam_pivot_calib synthetic_pivot_publisher.py &
 PUB_PID=$!
 sleep 2
 
+echo "Loading parameters from: $CONFIG_FILE"
+rosparam load "$CONFIG_FILE" /dual_cam_pivot_calib
+
 echo "Starting calibration node..."
-rosrun dual_cam_pivot_calib dual_cam_pivot_calib_node &
+rosrun dual_cam_pivot_calib dual_cam_pivot_calib_node __name:=dual_cam_pivot_calib &
 NODE_PID=$!
 sleep 2
 

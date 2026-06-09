@@ -37,6 +37,14 @@ install(TARGETS dual_cam_pivot_calib_node
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
+install(DIRECTORY launch/
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+)
+
+install(DIRECTORY config/
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/config
+)
+
 catkin_install_python(PROGRAMS scripts/synthetic_pivot_publisher.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
