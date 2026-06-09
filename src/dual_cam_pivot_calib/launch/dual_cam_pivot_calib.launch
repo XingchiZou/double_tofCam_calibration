@@ -1,0 +1,9 @@
+<launch>
+  <!-- Load parameters from YAML, then start the calibration node -->
+  <arg name="config_file" default="$(find dual_cam_pivot_calib)/config/config.yaml" />
+
+  <node name="dual_cam_pivot_calib" pkg="dual_cam_pivot_calib"
+        type="dual_cam_pivot_calib_node" output="screen">
+    <rosparam file="$(arg config_file)" command="load" />
+  </node>
+</launch>
