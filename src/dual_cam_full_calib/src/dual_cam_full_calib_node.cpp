@@ -293,6 +293,11 @@ private:
 
   // ---------------------------------------------------------------------------
   //  阶段三：水平力臂求解 (降维 2D 最小二乘)
+  //
+  //  经过 R_align 修正后旋转轴对齐到 -X，即绕 X 轴旋转。
+  //  (R_x - I) 的第 0 行/列全为零（X 方向退化），
+  //  因此取右下 2×2 块 (rows 1-2, cols 1-2) 与 t 的 y,z 分量求解。
+  //  输出向量为 [r_y, r_z]。
   // ---------------------------------------------------------------------------
   Eigen::Vector2d solveHorizontalLeverArm(const std::vector<Eigen::Matrix4d>& transforms) const
   {
@@ -304,9 +309,9 @@ private:
     {
       const Eigen::Matrix3d R = transforms[k].block<3, 3>(0, 0);
       const Eigen::Vector3d t = transforms[k].block<3, 1>(0, 3);
-      M.block<2, 2>(2 * k, 0) = R.block<2, 2>(0, 0) - Eigen::Matrix2d::Identity();
-      b(2 * k)     = t.x();
-      b(2 * k + 1) = t.y();
+      M.block<2, 2>(2 * k, 0) = R.block<2, 2>(1, 1) - Eigen::Matrix2d::Identity();
+      b(2 * k)     = t.y();
+      b(2 * k + 1) = t.z();
     }
 
     Eigen::JacobiSVD<Eigen::MatrixXd> svd(M, Eigen::ComputeThinU | Eigen::ComputeThinV);
@@ -470,8 +475,8 @@ private:
     oss << "\n============ calibration results ============\n"
         << "R_align1 (Cam1 alignment rotation):\n" << R_align1 << "\n\n"
         << "R_align2 (Cam2 alignment rotation):\n" << R_align2 << "\n\n"
-        << "Camera 1 lever arm: r1x=" << r1.x() << ", r1y=" << r1.y() << "\n"
-        << "Camera 2 lever arm: r2x=" << r2.x() << ", r2y=" << r2.y() << "\n\n"
+        << "Camera 1 lever arm: r1y=" << r1.x() << ", r1z=" << r1.y() << "\n"
+        << "Camera 2 lever arm: r2y=" << r2.x() << ", r2z=" << r2.y() << "\n\n"
         << "Extrinsic X (T_C1<-C2):\n" << X << "\n\n"
         << "Yaw correction psi = " << psi_deg << " deg (" << psi_rad << " rad)\n"
         << "=============================================";
